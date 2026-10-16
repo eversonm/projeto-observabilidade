@@ -1,0 +1,12 @@
+route:
+  receiver: api-incident-recorder
+  group_by: [alertname, instance]
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 2h
+receivers:
+  - name: api-incident-recorder
+    webhook_configs:
+      - url: http://api:8000/internal/alertmanager
+        send_resolved: true
+

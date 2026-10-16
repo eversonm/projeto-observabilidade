@@ -1,0 +1,110 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+rule_files:
+  - /etc/prometheus/rules/*.yml
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [alertmanager:9093]
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: [prometheus:9090]
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      - targets: [api:8000]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(products_http_requests_total|products_http_request_duration_seconds_(bucket|sum|count)|products_incident_recovery_duration_seconds_(bucket|sum|count))$'
+        action: keep
+  - job_name: api-readiness
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: [http://api:8000/health/ready]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(probe_success|probe_duration_seconds)$'
+        action: keep
+  - job_name: postgres
+    static_configs:
+      - targets: [postgres-exporter:9187]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(pg_up|pg_stat_activity_count|pg_stat_database_(numbackends|xact_commit|xact_rollback|deadlocks|blks_hit|blks_read|tup_returned|tup_fetched|tup_inserted|tup_updated|tup_deleted))$'
+        action: keep
+  - job_name: keycloak-postgres
+    static_configs:
+      - targets: [keycloak-postgres-exporter:9187]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(pg_up|pg_stat_activity_count|pg_stat_database_(numbackends|xact_commit|xact_rollback|deadlocks|blks_hit|blks_read|tup_returned|tup_fetched|tup_inserted|tup_updated|tup_deleted))$'
+        action: keep
+  - job_name: host
+    static_configs:
+      - targets: [node-exporter:9100]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(node_cpu_seconds_total|node_memory_Mem(Available|Total)_bytes|node_filesystem_(avail|size)_bytes)$'
+        action: keep
+  - job_name: containers
+    static_configs:
+      - targets: [cadvisor:8080]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^container_(cpu_usage_seconds_total|memory_working_set_bytes|fs_usage_bytes|last_seen)$'
+        action: keep
+  - job_name: keycloak
+    metrics_path: /metrics
+    static_configs:
+      - targets: [keycloak:9000]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(keycloak_.*|jvm_memory_(used|max)_bytes|process_cpu_usage|system_cpu_usage|http_server_requests_seconds_(bucket|count|sum))$'
+        action: keep
+  - job_name: alertmanager
+    static_configs:
+      - targets: [alertmanager:9093]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(alertmanager_alerts|alertmanager_notifications_(failed|total))$'
+        action: keep
+  - job_name: loki
+    static_configs:
+      - targets: [loki:3100]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(loki_request_duration_seconds_(bucket|count|sum)|loki_distributor_bytes_received_total|loki_ingester_chunks_(created|flushed|stored_total))$'
+        action: keep
+  - job_name: tempo
+    static_configs:
+      - targets: [tempo:3200]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(tempo_distributor_spans_received_total|tempo_ingester_traces_created_total|tempo_ingester_traces_flushed_total|tempo_request_duration_seconds_(bucket|count|sum))$'
+        action: keep
+  - job_name: otel-collector
+    static_configs:
+      - targets: [otel-collector:8888]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(otelcol_(receiver_accepted_spans|exporter_sent_spans|exporter_send_failed_spans|process_runtime_heap_alloc_bytes|process_runtime_total_alloc_bytes)(_.+)?|otelcol_exporter_queue_size)$'
+        action: keep
+  - job_name: alloy
+    static_configs:
+      - targets: [alloy:12345]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '^(alloy_build_info|loki_source_docker_target_entries|loki_write_sent_entries_total|loki_write_dropped_entries_total)$'
+        action: keep
+

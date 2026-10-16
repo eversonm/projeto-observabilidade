@@ -1,0 +1,52 @@
+groups:
+  - name: atividade-final
+    rules:
+      - alert: HostCPUHigh
+        expr: 100 * (1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU do host acima de 80%"
+          description: "Uso sustentado de CPU por mais de cinco minutos."
+      - alert: HostMemoryHigh
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memória do host acima de 90%"
+          description: "Memória disponível abaixo de 10% por cinco minutos."
+      - alert: ApiLatencyHigh
+        expr: histogram_quantile(0.95, sum by(le) (rate(products_http_request_duration_seconds_bucket[5m]))) > 0.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latência p95 da API acima de 500 ms"
+          description: "O percentil 95 excedeu 500 ms por três minutos."
+      - alert: ServiceUnavailable
+        expr: up{job=~"api|keycloak|postgres|keycloak-postgres|api-readiness|host|containers|loki|tempo|otel-collector|alloy"} == 0 or probe_success{job="api-readiness"} == 0 or pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Um serviço monitorado está indisponível"
+          description: "Verifique API, Keycloak, PostgreSQL e seus healthchecks."
+      - alert: HostDiskHigh
+        expr: 100 * (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint!~"/run.*|/var/lib/docker/.*"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint!~"/run.*|/var/lib/docker/.*"}) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso de disco acima de 90%"
+          description: "O filesystem está com menos de 10% de espaço livre."
+      - alert: ApiErrorRateHigh
+        expr: sum(rate(products_http_requests_total{status_class=~"4xx|5xx"}[5m])) / clamp_min(sum(rate(products_http_requests_total[5m])), 0.001) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Taxa de erros HTTP acima de 5%"
+          description: "Mais de 5% das requisições falharam nos últimos cinco minutos."
+

@@ -1,0 +1,49 @@
+[project]
+name = "atividade-final-observabilidade"
+version = "0.1.0"
+description = "API de produtos instrumentada para estudo de observabilidade"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.30,<1",
+    "fastapi[standard]>=0.115,<1",
+    "httpx>=0.27,<1",
+    "opentelemetry-api>=1.28,<2",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.28,<2",
+    "opentelemetry-instrumentation-fastapi>=0.49b0,<1",
+    "opentelemetry-instrumentation-httpx>=0.49b0,<1",
+    "opentelemetry-instrumentation-sqlalchemy>=0.49b0,<1",
+    "opentelemetry-sdk>=1.28,<2",
+    "prometheus-client>=0.21,<1",
+    "pydantic-settings>=2.6,<3",
+    "pyjwt[crypto]>=2.10,<3",
+    "sqlalchemy[asyncio]>=2.0,<3",
+]
+
+[dependency-groups]
+dev = [
+    "aiosqlite>=0.20,<1",
+    "bandit>=1.8,<2",
+    "mypy>=1.13,<2",
+    "pip-audit>=2.7,<3",
+    "pytest>=8.3,<10",
+    "pytest-asyncio>=0.24,<2",
+    "pytest-cov>=6,<8",
+    "ruff>=0.8,<1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+

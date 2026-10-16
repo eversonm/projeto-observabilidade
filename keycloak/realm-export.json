@@ -1,0 +1,26 @@
+{
+  "realm": "observabilidade",
+  "enabled": true,
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging"],
+  "adminEventsEnabled": true,
+  "roles": {
+    "realm": [
+      {"name": "products-user", "description": "Acesso às rotas de produtos"},
+      {"name": "products-admin", "description": "Acesso administrativo incluindo carga inicial"}
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "products-api",
+      "name": "Products API",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:8000/*"],
+      "webOrigins": ["http://localhost:8000"]
+    }
+  ]
+}
+
