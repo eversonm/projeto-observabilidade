@@ -1,0 +1,43 @@
+groups:
+  - name: metricas_atividade_final
+    interval: 15s
+    rules:
+      # 1. Tempo de resposta (média em segundos)
+      - record: api_tempo_de_resposta_segundos
+        expr: sum(rate(products_http_request_duration_seconds_sum[5m])) / clamp_min(sum(rate(products_http_request_duration_seconds_count[5m])), 0.001)
+
+      # 2. Latência (percentil 95 por rota)
+      - record: api_latencia_p95_segundos
+        expr: histogram_quantile(0.95, sum by(le, route) (rate(products_http_request_duration_seconds_bucket[5m])))
+
+      # 3. Throughput (vazão de requisições por segundo)
+      - record: api_throughput_requisicoes_por_segundo
+        expr: sum by(route) (rate(products_http_requests_total[5m]))
+
+      # 4. Uso de CPU do host (%)
+      - record: host_uso_cpu_percentual
+        expr: 100 * (1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])))
+
+      # 5. Uso de memória do host (%)
+      - record: host_uso_memoria_percentual
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+
+      # 6. Espaço em disco utilizado (%)
+      - record: host_espaco_disco_percentual
+        expr: 100 * (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint!~"/run.*|/var/lib/docker/.*"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint!~"/run.*|/var/lib/docker/.*"})
+
+      # 7. Número de requisições total (contador agregado)
+      - record: api_numero_de_requisicoes_total
+        expr: sum by(method, route, status_class) (products_http_requests_total)
+
+      # 8. Taxa de erro (HTTP 4xx e 5xx por minuto)
+      - record: api_taxa_de_erros_por_minuto
+        expr: sum by(status_class) (rate(products_http_requests_total{status_class=~"4xx|5xx"}[1m])) * 60
+
+      # 9. Disponibilidade da API (0 a 1)
+      - record: api_disponibilidade_ratio
+        expr: min(probe_success{job="api-readiness"})
+
+      # 10. Tempo médio de recuperação (MTTR em segundos)
+      - record: sistema_tempo_medio_recuperacao_mttr_segundos
+        expr: sum by(alert_name) (rate(products_incident_recovery_duration_seconds_sum[7d])) / clamp_min(sum by(alert_name) (rate(products_incident_recovery_duration_seconds_count[7d])), 1)
