@@ -1,0 +1,91 @@
+digraph ArquiteturaGeral {
+    rankdir=TB;
+    graph [fontname="Helvetica,Arial,sans-serif", fontsize=11, pad="0.18", nodesep="0.32", ranksep="0.48", bgcolor="white", dpi=300];
+    node [fontname="Helvetica,Arial,sans-serif", fontsize=9.5, shape=box, style="rounded,filled", margin="0.13,0.08", penwidth=1.2];
+    edge [fontname="Helvetica,Arial,sans-serif", fontsize=8.5, penwidth=1.1];
+
+    subgraph cluster_app {
+        label="1. Camada de Aplicação, Autenticação e Persistência (Rede: app)";
+        labelloc="t";
+        labeljust="l";
+        margin=14;
+        style="rounded,filled";
+        color="#64B5F6";
+        fillcolor="#F5FAFF";
+        fontcolor="#0D47A1";
+
+        { rank=same;
+            api [label="API REST de Produtos\n(FastAPI / Python 3.12)\nPorta: 8000", fillcolor="#BBDEFB", color="#1976D2"];
+            apidb [label="PostgreSQL 16 (api-db)\nBase de Produtos (2M tuplas)\nPorta: 5432", shape=cylinder, fillcolor="#C8E6C9", color="#388E3C"];
+            kc [label="Keycloak 26.3 (IAM)\nOAuth2 / OIDC / RBAC\nPorta: 8080", fillcolor="#FFE0B2", color="#F57C00"];
+            kcdb [label="PostgreSQL 16\n(keycloak-db)\nPorta: 5432", shape=cylinder, fillcolor="#C8E6C9", color="#388E3C"];
+        }
+
+        api -> apidb [label="SQLAlchemy", color="#1976D2"];
+        api -> kc [label="Valida JWT", style=dashed, color="#F57C00"];
+        kc -> kcdb [label="JDBC", color="#388E3C"];
+    }
+
+    subgraph cluster_coleta {
+        label="2. Camada de Instrumentação, Exporters e Coletores (Rede: observability)";
+        labelloc="b";
+        labeljust="l";
+        margin=14;
+        style="rounded,filled";
+        color="#B39DDB";
+        fillcolor="#F8F5FF";
+        fontcolor="#311B92";
+
+        { rank=same;
+            exporters [label="Exporters Prometheus\n• Node Exporter (CPU/RAM/Disco)\n• cAdvisor (Containers)\n• Postgres Exporter (api-db / kc-db)\n• Blackbox Exporter (/health/ready)", fillcolor="#E1BEE7", color="#7B1FA2"];
+            alloy [label="Grafana Alloy v1.10\nColeta Logs via Docker Socket\nPorta: 12345", fillcolor="#D1C4E9", color="#512DA8"];
+            otel [label="OpenTelemetry Collector\nRecepção de Spans OTLP gRPC\nPorta: 4317", fillcolor="#D1C4E9", color="#512DA8"];
+        }
+    }
+
+    subgraph cluster_backends {
+        label="3. Armazenamento de Telemetria (Métricas, Logs, Traces) e Alertas";
+        labelloc="b";
+        labeljust="l";
+        margin=14;
+        style="rounded,filled";
+        color="#FFCC80";
+        fillcolor="#FFFDF7";
+        fontcolor="#E65100";
+
+        { rank=same;
+            alert [label="Alertmanager v0.28\nRoteamento e Webhook MTTR\nPorta: 9093", fillcolor="#FFAB91", color="#BF360C"];
+            prom [label="Prometheus v3.5 (TSDB)\n• metric_relabel_configs (33 séries)\n• 10 Recording Rules / 6 Alertas\nPorta: 9090", fillcolor="#FFCCBC", color="#D84315"];
+            loki [label="Grafana Loki v3.5\nIndexação de Logs JSON\nPorta: 3100", fillcolor="#FFE082", color="#FFA000"];
+            tempo [label="Grafana Tempo v2.8\nArmazenamento de Traces\nPorta: 3200", fillcolor="#B2DFDB", color="#00796B"];
+        }
+
+        prom -> alert [label="Alertas", color="#BF360C"];
+    }
+
+    subgraph cluster_vis {
+        label="4. Camada de Visualização e Correlação Unificada";
+        labelloc="b";
+        labeljust="l";
+        margin=14;
+        style="rounded,filled";
+        color="#81C784";
+        fillcolor="#F1F8E9";
+        fontcolor="#1B5E20";
+
+        grafana [label="Grafana v12.1 (Porta: 3000)\nDashboard Provisionado: 'Produtos API - Observabilidade' | Correlação Nativa Métricas (PromQL) ↔ Logs (LogQL) ↔ Traces (TraceQL via trace_id)", fillcolor="#A5D6A7", color="#2E7D32", penwidth=1.8];
+    }
+
+    api -> prom [label="HTTP Pull /metrics", color="#D84315"];
+    apidb -> exporters [label="Métricas PG", style=dotted, color="#388E3C"];
+    exporters -> prom [label="HTTP Pull (15s)", color="#D84315"];
+    api -> alloy [label="Logs JSON", color="#512DA8"];
+    alloy -> loki [label="Loki Push", color="#FFA000"];
+    api -> otel [label="OTLP gRPC", color="#00796B"];
+    otel -> tempo [label="Spans", color="#00796B"];
+    alert -> api [label="Webhook MTTR", style=dashed, color="#BF360C"];
+
+    prom -> grafana [label="PromQL", color="#2E7D32"];
+    loki -> grafana [label="LogQL", color="#2E7D32"];
+    tempo -> grafana [label="TraceQL", color="#2E7D32"];
+}

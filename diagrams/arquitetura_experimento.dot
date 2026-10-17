@@ -1,0 +1,56 @@
+digraph ExperimentoPratico {
+    rankdir=TB;
+    graph [fontname="Helvetica,Arial,sans-serif", fontsize=11, pad="0.18", nodesep="0.32", ranksep="0.48", bgcolor="white", dpi=300];
+    node [fontname="Helvetica,Arial,sans-serif", fontsize=9.5, shape=box, style="rounded,filled", margin="0.13,0.08", penwidth=1.2];
+    edge [fontname="Helvetica,Arial,sans-serif", fontsize=8.5, penwidth=1.1];
+
+    subgraph cluster_fluxo {
+        label="Etapa A – Execução da Carga de 2 Milhões de Tuplas na API REST";
+        labelloc="t";
+        labeljust="l";
+        margin=14;
+        style="rounded,filled";
+        color="#64B5F6";
+        fillcolor="#F5FAFF";
+        fontcolor="#0D47A1";
+
+        { rank=same;
+            client [label="1. Requisição Autenticada\nToken JWT (role: products-admin)\nPOST /api/v1/products/init", fillcolor="#E3F2FD", color="#1565C0"];
+            api_init [label="2. Middleware e Controller FastAPI\nGera request_id e propaga trace_id\nAdquire pg_advisory_xact_lock", fillcolor="#BBDEFB", color="#1976D2"];
+            bench [label="3. Savepoint Benchmark\nMede tempo no PostgreSQL\n(<30s: Híbrido | >=30s: Bulk)", fillcolor="#FFF9C4", color="#FBC02D"];
+            db_insert [label="4. Carga em sql/init_products.sql\nInsere 2.000.000 de registros\nvia generate_series e faz Commit", shape=cylinder, fillcolor="#C8E6C9", color="#388E3C"];
+        }
+
+        client -> api_init [label="HTTP POST"];
+        api_init -> bench [label="Savepoint"];
+        bench -> db_insert [label="Bulk Insert"];
+    }
+
+    subgraph cluster_telemetria {
+        label="Etapa B – Coleta Simultânea dos Três Pilares e Análise no Grafana";
+        labelloc="b";
+        labeljust="l";
+        margin=14;
+        style="rounded,filled";
+        color="#FFB74D";
+        fillcolor="#FFFDF9";
+        fontcolor="#E65100";
+
+        { rank=same;
+            m_pil [label="Métricas (Prometheus)\n• api_tempo_de_resposta_segundos\n• api_latencia_p95_segundos\n• host_uso_cpu / memoria / disco\n• pg_stat_user_tables_n_live_tup", fillcolor="#FFCCBC", color="#D84315"];
+            l_pil [label="Logs Estruturados (Alloy → Loki)\n• Evento: products_initialized\n• Atributos: strategy, inserted=2000000,\n  benchmark_seconds, trace_id", fillcolor="#FFE082", color="#FFA000"];
+            t_pil [label="Traces Distribuídos (OTel → Tempo)\n• Span HTTP POST /api/v1/products/init\n• Spans SQLAlchemy / AsyncPG\n• Tempo exato de cada instrução SQL", fillcolor="#B2DFDB", color="#00796B"];
+        }
+
+        dash [label="Grafana (Dashboard: Produtos API - Observabilidade)\nAnálise integrada do comportamento sob estresse (2M tuplas), diagnóstico de gargalos e validação das 10 métricas", fillcolor="#A5D6A7", color="#2E7D32", penwidth=1.8];
+
+        m_pil -> dash [label="Consultas PromQL", color="#2E7D32"];
+        l_pil -> dash [label="Consultas LogQL", color="#2E7D32"];
+        t_pil -> dash [label="Correlação TraceID", color="#2E7D32"];
+    }
+
+    api_init -> m_pil [label="Expõe /metrics", color="#D84315"];
+    db_insert -> m_pil [label="Exporters Host/PG", color="#D84315"];
+    api_init -> l_pil [label="Emite JSON stdout", color="#FFA000"];
+    api_init -> t_pil [label="Envia Spans OTLP", color="#00796B"];
+}
