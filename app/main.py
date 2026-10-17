@@ -4,7 +4,7 @@ import time
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -51,7 +51,7 @@ class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         event: dict[str, object] = {
             "timestamp": datetime.fromtimestamp(
-                record.created, timezone.utc
+                record.created, UTC
             ).isoformat(),
             "level": record.levelname,
             "logger": record.name,

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -55,7 +55,7 @@ async def receive_alertmanager_event(
             incident.ended_at = ended_at
             started_at = incident.started_at
             if started_at.tzinfo is None:
-                started_at = started_at.replace(tzinfo=timezone.utc)
+                started_at = started_at.replace(tzinfo=UTC)
             duration = max((ended_at - started_at).total_seconds(), 0)
             INCIDENT_RECOVERY.labels(alert_name=incident.alert_name).observe(duration)
             logger.warning(
@@ -69,5 +69,5 @@ async def receive_alertmanager_event(
 
 def _parse_datetime(value: object) -> datetime:
     if not isinstance(value, str):
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
