@@ -76,4 +76,3 @@ async def test_delete_missing_product_does_not_call_repository_delete(monkeypatc
     with pytest.raises(HTTPException):
         await service.delete_product(AsyncMock(), 999)
     delete_product.assert_not_awaited()
-

@@ -47,4 +47,3 @@ def product_payload() -> dict[str, str]:
         "description": "Caderno universitário de 100 folhas",
         "link": "https://example.com/caderno",
     }
-

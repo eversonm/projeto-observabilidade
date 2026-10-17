@@ -114,16 +114,12 @@ async def test_alertmanager_webhook_records_firing_and_resolution(client):
         "startsAt": "2026-10-16T12:00:00Z",
         "endsAt": "0001-01-01T00:00:00Z",
     }
-    fired = await client.post(
-        "/internal/alertmanager", json={"alerts": [alert]}
-    )
+    fired = await client.post("/internal/alertmanager", json={"alerts": [alert]})
     assert fired.status_code == 202
     assert fired.json()["processed"] == 1
 
     resolved = {**alert, "status": "resolved", "endsAt": "2026-10-16T12:02:00Z"}
-    response = await client.post(
-        "/internal/alertmanager", json={"alerts": [resolved]}
-    )
+    response = await client.post("/internal/alertmanager", json={"alerts": [resolved]})
     assert response.status_code == 202
     assert response.json()["processed"] == 1
 
@@ -133,4 +129,3 @@ async def test_health_liveness_is_available_without_auth(client):
     response = await client.get("/health/live")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
-

@@ -39,4 +39,3 @@ async def test_seed_uses_bulk_after_slow_bulk_probe(monkeypatch):
     assert result["strategy"] == "bulk"
     assert session.flush.await_count == 0
     assert session.execute.await_count == 3
-

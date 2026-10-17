@@ -28,4 +28,3 @@ async def test_token_without_product_role_is_forbidden():
     with pytest.raises(HTTPException) as error:
         await require_products_user(Principal("u", "user", frozenset()))
     assert error.value.status_code == 403
-

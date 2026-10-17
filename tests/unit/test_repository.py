@@ -47,4 +47,3 @@ async def test_repository_updates_product(test_session_factory):
         assert updated.name == "Depois"
         assert updated.description == "Y2"
         assert updated.link == "Z2"
-

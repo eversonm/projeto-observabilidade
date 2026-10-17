@@ -16,4 +16,3 @@ async def test_products_require_authentication(client):
     app.dependency_overrides.pop(require_products_user)
     response = await client.get("/api/v1/products")
     assert response.status_code == 401
-
