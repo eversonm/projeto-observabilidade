@@ -16,7 +16,7 @@
 ```sh
 uv sync --group dev
 uv run pytest
-uv run ruff check app tests
+uv run ruff check --fix --show-fixes --quiet app tests
 uv run mypy app
 uv run bandit -r app
 uv run pip-audit
