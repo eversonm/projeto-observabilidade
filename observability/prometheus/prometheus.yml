@@ -44,7 +44,7 @@ scrape_configs:
       - targets: [postgres-exporter:9187]
     metric_relabel_configs:
       - source_labels: [__name__]
-        regex: '^(pg_up|pg_stat_activity_count)$'
+        regex: '^(pg_up|pg_stat_database_tup_inserted|pg_stat_user_tables_n_live_tup)$'
         action: keep
   - job_name: keycloak-postgres
     static_configs:

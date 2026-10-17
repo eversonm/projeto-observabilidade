@@ -32,4 +32,22 @@ storage:
     pool:
       max_workers: 100
       queue_depth: 10000
+metrics_generator:
+  ring:
+    kvstore:
+      store: inmemory
+  processor:
+    local_blocks:
+      filter_server_spans: false
+      flush_to_storage: true
+  storage:
+    path: /var/tempo/generator/wal
+  traces_storage:
+    path: /var/tempo/generator/traces
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [local-blocks]
+
+
 
