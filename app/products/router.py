@@ -92,4 +92,3 @@ async def init_products(
         extra={"actor": principal.username, **result},
     )
     return result
-

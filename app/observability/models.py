@@ -15,4 +15,3 @@ class AlertIncident(Base):
         DateTime(timezone=True), nullable=False
     )
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-

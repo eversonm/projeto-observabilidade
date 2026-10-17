@@ -65,4 +65,3 @@ async def initialize_products(
         "strategy": strategy,
         "benchmark_seconds": round(benchmark_seconds, 3),
     }
-

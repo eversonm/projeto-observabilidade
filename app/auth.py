@@ -14,8 +14,7 @@ from app.config import settings
 # from Keycloak and attaches it to protected requests automatically.
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=(
-        f"{settings.keycloak_issuer.rstrip('/')}/"
-        "protocol/openid-connect/token"
+        f"{settings.keycloak_issuer.rstrip('/')}/" "protocol/openid-connect/token"
     ),
     auto_error=False,
 )
@@ -108,4 +107,3 @@ async def require_products_user(
             detail="Acesso negado",
         )
     return principal
-

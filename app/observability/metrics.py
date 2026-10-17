@@ -17,4 +17,3 @@ INCIDENT_RECOVERY = Histogram(
     ["alert_name"],
     buckets=(30, 60, 120, 300, 600, 1800, 3600, 14400, 86400),
 )
-

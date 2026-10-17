@@ -29,6 +29,7 @@ from app.observability.router import router as observability_router
 from app.products.models import Base
 from app.products.router import router as products_router
 
+
 class JsonFormatter(logging.Formatter):
     fields = (
         "request_id",
@@ -209,4 +210,3 @@ async def unexpected_exception_handler(
             "X-Request-ID": getattr(request.state, "request_id", ""),
         },
     )
-

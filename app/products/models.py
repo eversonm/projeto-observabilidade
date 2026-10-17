@@ -24,4 +24,3 @@ class Product(Base):
         onupdate=func.now(),
         nullable=False,
     )
-

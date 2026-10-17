@@ -36,4 +36,3 @@ async def update_product(
 async def delete_product(session: AsyncSession, product_id: int) -> None:
     product = await get_product(session, product_id)
     await repository.delete_product(session, product)
-

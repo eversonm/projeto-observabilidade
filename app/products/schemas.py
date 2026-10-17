@@ -29,6 +29,3 @@ class ProductPage(BaseModel):
     total: int
     limit: int
     offset: int
-
-
-

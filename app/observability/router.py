@@ -71,4 +71,3 @@ def _parse_datetime(value: object) -> datetime:
     if not isinstance(value, str):
         return datetime.now(timezone.utc)
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
