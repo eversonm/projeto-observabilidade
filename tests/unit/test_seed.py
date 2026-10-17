@@ -18,6 +18,7 @@ async def test_seed_returns_without_insert_when_target_reached():
 @pytest.mark.asyncio
 async def test_seed_uses_hybrid_after_fast_bulk_probe(monkeypatch):
     session = AsyncMock()
+    session.add = MagicMock()
     session.scalar.return_value = 0
     savepoint = AsyncMock()
     session.begin_nested.return_value = savepoint

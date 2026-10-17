@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+from fastapi import HTTPException, status
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -30,12 +31,19 @@ async def client(test_session_factory) -> AsyncGenerator[AsyncClient, None]:
     async def product_user() -> Principal:
         return Principal("user-123", "test-user", frozenset({"products-user"}))
 
+    async def admin_forbidden() -> Principal:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado",
+        )
+
     app.dependency_overrides[get_session] = session_override
     app.dependency_overrides[require_products_user] = product_user
-    app.dependency_overrides[require_admin] = product_user
+    app.dependency_overrides[require_admin] = admin_forbidden
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
+        follow_redirects=True,
     ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
