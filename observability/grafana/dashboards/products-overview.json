@@ -161,15 +161,20 @@
     },
     {
       "id": 11,
-      "title": "PostgreSQL: conexões",
+      "title": "PostgreSQL: tuplas na tabela products e inserções/s",
       "type": "timeseries",
       "gridPos": { "h": 7, "w": 12, "x": 12, "y": 22 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "pg_stat_activity_count",
-          "legendFormat": "conexões",
+          "expr": "pg_stat_user_tables_n_live_tup{datname=\"products\",relname=\"products\"}",
+          "legendFormat": "tuplas ativas (products)",
           "refId": "A"
+        },
+        {
+          "expr": "rate(pg_stat_database_tup_inserted{datname=\"products\"}[5m])",
+          "legendFormat": "inserções/s (5m)",
+          "refId": "B"
         }
       ],
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
