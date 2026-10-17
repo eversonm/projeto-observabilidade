@@ -205,6 +205,7 @@ services:
       - --path.rootfs=/host
       - --path.procfs=/host/proc
       - --path.sysfs=/host/sys
+      - --no-collector.thermal_zone
     volumes:
       - /:/host:ro,rslave
     restart: unless-stopped
